@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ export default function Register() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -50,7 +50,7 @@ export default function Register() {
       });
 
       if (response.ok) {
-        navigate("/login");
+        setLocation("/login");
       } else {
         const data = await response.json();
         setError(data.error || "Registration failed");
@@ -145,7 +145,7 @@ export default function Register() {
               Already have an account?{" "}
               <Button
                 variant="link"
-                onClick={() => navigate("/login")}
+                onClick={() => setLocation("/login")}
                 className="p-0 text-blue-600"
               >
                 Login here

@@ -6,17 +6,11 @@ runButton = "Start Server"
 [[workflows.workflow]]
 name = "Start Server"
 author = 40473761
-mode = "sequential"
+mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd server && npm install && npm run dev"
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
 
 [nix]
 channel = "stable-24_05"
