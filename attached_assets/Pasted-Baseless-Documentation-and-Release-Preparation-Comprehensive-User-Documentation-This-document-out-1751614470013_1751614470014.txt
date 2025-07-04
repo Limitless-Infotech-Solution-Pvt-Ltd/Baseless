@@ -1,0 +1,98 @@
+Baseless: Documentation and Release Preparation - Comprehensive User Documentation
+This document outlines the strategy for creating comprehensive and user-friendly documentation for "Baseless." High-quality documentation is crucial for ensuring that "Baseless" is truly the "easiest cPanel ever built," enabling users of all technical levels to effectively manage their hosting environments.
+1. Documentation Principles
+User-Centric: All documentation will be written from the perspective of the end-user, using clear, concise language and avoiding unnecessary technical jargon.
+Task-Oriented: Focus on guiding users through common tasks and workflows, providing step-by-step instructions.
+Searchable: Structure content for easy navigation and searchability.
+Up-to-Date: Establish a process for continuous updates to ensure documentation remains current with "Baseless" features and changes.
+Visual Aids: Incorporate screenshots, diagrams, and short video tutorials where appropriate to enhance understanding.
+2. Key Documentation Components
+2.1. Installation Guide
+This guide will provide detailed, step-by-step instructions for installing "Baseless" on supported Linux distributions (AlmaLinux/Rocky Linux).
+Prerequisites: Clear list of hardware, software, and network requirements.
+Pre-installation Steps: Instructions for preparing the server (e.g., updating OS, setting up initial user, configuring firewall basics).
+Installation Process: Command-line instructions for automated installation, including any necessary configuration prompts.
+Post-installation Verification: Steps to confirm successful installation and initial access.
+Troubleshooting: Common installation issues and their solutions.
+2.2. User Manuals
+Comprehensive manuals tailored to different user roles will be developed.
+2.2.1. End-User Manual (cPanel Equivalent)
+This manual will guide website owners and developers through managing their individual hosting accounts.
+Getting Started: First login, dashboard overview, changing language/theme.
+File Management:
+Using the web-based File Manager (upload, edit, delete, copy, move files/folders).
+Setting up Directory Privacy (password protection).
+Understanding Disk Usage.
+Creating and managing FTP/SFTP accounts.
+Domain Management:
+Adding Addon Domains, Subdomains, Aliases (Parked Domains).
+Configuring Redirects.
+Using the DNS Zone Editor (managing A, AAAA, CNAME, MX, TXT records).
+Email Management:
+Creating and managing Email Accounts.
+Setting up Email Forwarders and Autoresponders.
+Basic Spam Filtering.
+Accessing Webmail.
+Database Management:
+Creating and managing PostgreSQL Databases and Users.
+Assigning/revoking database user privileges.
+Accessing the phpMyAdmin equivalent.
+Understanding database quotas.
+Application Management:
+Using the One-Click Installer (e.g., for WordPress).
+Managing PHP Versions for domains.
+Setting up Cron Jobs.
+Managing SSH Access and SSH Keys.
+Security:
+Understanding Two-Factor Authentication (2FA) setup.
+Managing API Tokens.
+Using the IP Blocker.
+Metrics & Monitoring:
+Viewing Resource Usage (CPU, RAM, I/O, Bandwidth).
+Understanding resource limits and "faults."
+Backups: Creating and restoring full or partial account backups.
+2.2.2. Administrator Manual (WHM Equivalent)
+This manual will guide hosting providers and server administrators through managing the entire "Baseless" server and multiple user accounts.
+Server Overview: Dashboard, server health, system services.
+Account Management:
+Creating, suspending, unsuspending, and terminating user accounts.
+Listing and searching accounts.
+Changing account passwords and contact emails.
+Package Management:
+Creating, editing, and deleting hosting packages.
+Defining resource limits (disk space, bandwidth, email, databases, cgroup limits).
+Assigning Feature Lists to packages.
+Feature List Management: Creating and customizing Feature Lists to control user access to features.
+Security Center:
+Configuring Web Application Firewall (ModSecurity).
+Managing Malware Scanning.
+Setting up Brute Force Protection (cPHulk equivalent).
+Configuring IP Access Control.
+Managing server-wide SSL/TLS.
+Server Configuration:
+Web server (NGINX/OpenLiteSpeed) configuration.
+Mail server configuration.
+DNS server configuration.
+PHP version installation and management.
+Monitoring & Analytics:
+Server-wide resource monitoring.
+Centralized logging and log analysis.
+Configuring alerts and notifications.
+Backup & Restore:
+Scheduling and managing server-wide backups.
+Performing server-wide and individual account restores.
+Configuring remote backup destinations.
+Customization & Branding:
+White-labeling "Baseless" with custom logos, colors, and login pages.
+Managing user-selectable themes and language packs.
+Plugin Management: Installing, updating, and managing "Baseless" plugins.
+3. Troubleshooting Guides
+A dedicated section or separate guides for common issues, including:
+Website not loading (DNS issues, web server errors).
+Email sending/receiving problems.
+Database connection errors.
+Resource limit exceeded warnings.
+Login issues.
+4. Documentation Platform
+We will host the documentation on a dedicated, easily accessible platform (e.g., using an open-source documentation generator like Docusaurus or MkDocs). This ensures it's readily available and can be continuously updated.
+This comprehensive user documentation will be a cornerstone of the "Baseless" experience, empowering users and reducing the need for direct support.
