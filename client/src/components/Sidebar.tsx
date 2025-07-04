@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Logo } from "./Logo"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SidebarProps {

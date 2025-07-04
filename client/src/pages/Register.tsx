@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Logo } from "@/components/Logo";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -78,7 +78,7 @@ export default function Register() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
@@ -91,7 +91,7 @@ export default function Register() {
                 placeholder="Enter username"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -104,7 +104,7 @@ export default function Register() {
                 placeholder="Enter your email"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -117,7 +117,7 @@ export default function Register() {
                 placeholder="Enter password"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
@@ -130,7 +130,7 @@ export default function Register() {
                 placeholder="Confirm password"
               />
             </div>
-            
+
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700"
@@ -139,7 +139,7 @@ export default function Register() {
               {loading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
-          
+
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
