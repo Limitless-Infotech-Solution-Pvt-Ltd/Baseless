@@ -1,19 +1,59 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatUptime } from "@/lib/utils";
-import type { ServerStats, User } from "@shared/schema";
+import type { ServerStats, User, Notification, SecurityScan } from "@shared/schema";
+import { io, Socket } from "socket.io-client";
 
 export default function Dashboard() {
-  const { data: serverStats, isLoading: statsLoading } = useQuery<ServerStats>({
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [realtimeNotifications, setRealtimeNotifications] = useState<Notification[]>([]);
+
+  const { data: serverStats, isLoading: statsLoading, refetch: refetchStats } = useQuery<ServerStats>({
     queryKey: ["/api/server-stats"],
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
+
+  const { data: notifications } = useQuery<Notification[]>({
+    queryKey: ["/api/notifications"],
+    refetchInterval: 60000, // Refetch every minute
+  });
+
+  const { data: securityScan } = useQuery<SecurityScan>({
+    queryKey: ["/api/security/scans/latest"],
+    refetchInterval: 300000, // Refetch every 5 minutes
+  });
+
+  // Socket.IO connection
+  useEffect(() => {
+    const newSocket = io();
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      console.log('Connected to server');
+      newSocket.emit('join-user-room', 1); // Assuming user ID 1 for demo
+    });
+
+    newSocket.on('notification', (notification: Notification) => {
+      setRealtimeNotifications(prev => [notification, ...prev.slice(0, 4)]);
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        setRealtimeNotifications(prev => prev.filter(n => n.id !== notification.id));
+      }, 5000);
+    });
+
+    return () => {
+      newSocket.close();
+    };
+  }, []);
 
   if (statsLoading || usersLoading) {
     return (
@@ -37,10 +77,46 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Real-time Notifications */}
+      {realtimeNotifications.length > 0 && (
+        <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+          {realtimeNotifications.map((notification) => (
+            <Alert 
+              key={notification.id}
+              className={`border-l-4 shadow-lg animate-in slide-in-from-right-full duration-300 ${
+                notification.type === 'error' ? 'border-red-500 bg-red-50' :
+                notification.type === 'warning' ? 'border-yellow-500 bg-yellow-50' :
+                notification.type === 'success' ? 'border-green-500 bg-green-50' :
+                'border-blue-500 bg-blue-50'
+              }`}
+            >
+              <AlertDescription>
+                <div className="font-medium">{notification.title}</div>
+                <div className="text-sm text-gray-600">{notification.message}</div>
+              </AlertDescription>
+            </Alert>
+          ))}
+        </div>
+      )}
+
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white shadow-xl">
         <h1 className="text-3xl font-bold mb-2">Welcome back, Admin!</h1>
         <p className="text-white/80">Your server is running smoothly with optimal performance.</p>
+        <div className="flex items-center mt-4 space-x-4">
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+            <span className="text-sm">Live Dashboard</span>
+          </div>
+          {securityScan && (
+            <div className="flex items-center">
+              <i className="fas fa-shield-alt mr-2"></i>
+              <span className="text-sm">
+                Last scan: {securityScan.completedAt ? new Date(securityScan.completedAt).toLocaleDateString() : 'In progress'}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Server Health Overview */}
@@ -138,44 +214,93 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-4">
-              <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
-                  <i className="fas fa-user-plus text-white text-sm"></i>
+              {notifications?.slice(0, 5).map((notification, index) => (
+                <div key={notification.id} className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
+                  <div className={`w-10 h-10 bg-gradient-to-br rounded-xl flex items-center justify-center shadow-md ${
+                    notification.type === 'error' ? 'from-red-400 to-red-600' :
+                    notification.type === 'warning' ? 'from-yellow-400 to-orange-600' :
+                    notification.type === 'success' ? 'from-green-400 to-emerald-600' :
+                    'from-blue-400 to-indigo-600'
+                  }`}>
+                    <i className={`text-white text-sm ${
+                      notification.type === 'error' ? 'fas fa-exclamation-triangle' :
+                      notification.type === 'warning' ? 'fas fa-exclamation-circle' :
+                      notification.type === 'success' ? 'fas fa-check-circle' :
+                      'fas fa-info-circle'
+                    }`}></i>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-900">{notification.title}</p>
+                    <p className="text-xs text-slate-500">
+                      {notification.message} - {new Date(notification.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  {!notification.isRead && (
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-0">New</Badge>
+                  )}
+                  {notification.priority === 'high' && (
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-0">High</Badge>
+                  )}
+                  {notification.priority === 'critical' && (
+                    <Badge variant="secondary" className="bg-red-100 text-red-700 border-0">Critical</Badge>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-900">New account created</p>
-                  <p className="text-xs text-slate-500">
-                    {users?.[0]?.email || "New user"} - {users?.[0]?.createdAt ? new Date(users[0].createdAt).toLocaleDateString() : "Recently"}
-                  </p>
-                </div>
-                <Badge variant="secondary" className="bg-green-100 text-green-700 border-0">New</Badge>
-              </div>
-              
-              <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-                  <i className="fas fa-server text-white text-sm"></i>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-900">Server stats updated</p>
-                  <p className="text-xs text-slate-500">
-                    System monitoring - {serverStats?.timestamp ? new Date(serverStats.timestamp).toLocaleString() : "Recently"}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
-                  <i className="fas fa-shield-alt text-white text-sm"></i>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-900">Security scan completed</p>
-                  <p className="text-xs text-slate-500">No threats found - System healthy</p>
-                </div>
-                <Badge variant="secondary" className="bg-green-100 text-green-700 border-0">
-                  <i className="fas fa-check text-xs mr-1"></i>
-                  Secure
-                </Badge>
-              </div>
+              )) || (
+                // Fallback to default activities
+                <>
+                  <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+                      <i className="fas fa-user-plus text-white text-sm"></i>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-900">New account created</p>
+                      <p className="text-xs text-slate-500">
+                        {users?.[0]?.email || "New user"} - {users?.[0]?.createdAt ? new Date(users[0].createdAt).toLocaleDateString() : "Recently"}
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 border-0">New</Badge>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                      <i className="fas fa-server text-white text-sm"></i>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-900">Server stats updated</p>
+                      <p className="text-xs text-slate-500">
+                        System monitoring - {serverStats?.timestamp ? new Date(serverStats.timestamp).toLocaleString() : "Recently"}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
+                    <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
+                      <i className="fas fa-shield-alt text-white text-sm"></i>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-900">Security scan completed</p>
+                      <p className="text-xs text-slate-500">
+                        {securityScan ? 
+                          `${securityScan.threatsFound || 0} threats found - ${securityScan.status}` : 
+                          "No threats found - System healthy"
+                        }
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className={`border-0 ${
+                      securityScan?.threatsFound && securityScan.threatsFound > 0 ? 
+                        'bg-yellow-100 text-yellow-700' : 
+                        'bg-green-100 text-green-700'
+                    }`}>
+                      <i className={`text-xs mr-1 ${
+                        securityScan?.threatsFound && securityScan.threatsFound > 0 ? 
+                          'fas fa-exclamation-triangle' : 
+                          'fas fa-check'
+                      }`}></i>
+                      {securityScan?.threatsFound && securityScan.threatsFound > 0 ? 'Alert' : 'Secure'}
+                    </Badge>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

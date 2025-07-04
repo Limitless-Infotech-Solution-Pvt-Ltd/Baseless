@@ -55,7 +55,9 @@ function Router() {
         <Route path="/packages" component={HostingPackages} />
         <Route path="/files" component={FileManager} />
         <Route path="/2fa-setup" component={TwoFactorSetup} />
-        <Route path="/domains" component={() => <PlaceholderPage title="Domain Management" icon="fas fa-globe" description="Manage domains, subdomains, and DNS settings" buttonText="Add Domain" />} />
+        <Route path="/domains" component={lazy(() => import("./pages/DomainManagement"))} />
+        <Route path="/webmail" component={lazy(() => import("./pages/Webmail"))} />
+        <Route path="/code-editor" component={lazy(() => import("./pages/BaselessCode"))} />
         <Route path="/email" component={() => <PlaceholderPage title="Email Management" icon="fas fa-envelope" description="Create and manage email accounts, forwarders, and autoresponders" buttonText="Create Email Account" />} />
         <Route path="/databases" component={() => <PlaceholderPage title="Database Management" icon="fas fa-database" description="Create and manage PostgreSQL databases and users" buttonText="Create Database" />} />
         <Route path="/monitoring" component={() => <PlaceholderPage title="Resource Monitoring" icon="fas fa-chart-bar" description="Monitor server resources and user account usage" buttonText="View Reports" />} />

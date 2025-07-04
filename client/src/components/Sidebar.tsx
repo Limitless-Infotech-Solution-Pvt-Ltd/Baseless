@@ -12,13 +12,15 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: "fas fa-chart-line" },
   { name: "User Accounts", href: "/accounts", icon: "fas fa-users" },
   { name: "Hosting Packages", href: "/packages", icon: "fas fa-box" },
-  { name: "Domain Management", href: "/domains", icon: "fas fa-globe" },
-  { name: "Email Management", href: "/email", icon: "fas fa-envelope" },
+  { name: "Domains & DNS", href: "/domains", icon: "fas fa-globe" },
+  { name: "Webmail", href: "/webmail", icon: "fas fa-envelope" },
+  { name: "Email Accounts", href: "/email", icon: "fas fa-at" },
   { name: "Databases", href: "/databases", icon: "fas fa-database" },
   { name: "File Manager", href: "/files", icon: "fas fa-folder" },
   { name: "Monitoring", href: "/monitoring", icon: "fas fa-chart-bar" },
   { name: "Backups", href: "/backups", icon: "fas fa-shield-alt" },
   { name: "Security", href: "/security", icon: "fas fa-lock" },
+  { name: "Baseless Code", href: "/code-editor", icon: "fas fa-code" },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
@@ -34,7 +36,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
       <div 
         className={cn(
@@ -61,7 +63,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             )}
           </div>
         </div>
-        
+
         <nav className={cn(
           "py-4 space-y-1 px-3 transition-all duration-300",
           isExpanded && "px-4"
@@ -117,7 +119,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             return linkContent;
           })}
         </nav>
-        
+
         <div className={cn(
           "absolute bottom-0 left-0 right-0 p-3 border-t border-slate-800 bg-slate-900/95 backdrop-blur transition-all duration-300",
           isExpanded && "p-4"
