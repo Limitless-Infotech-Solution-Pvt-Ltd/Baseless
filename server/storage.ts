@@ -176,7 +176,12 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const user: User = {
       id: this.userIdCounter++,
-      ...insertUser,
+      username: insertUser.username,
+      email: insertUser.email,
+      password: insertUser.password,
+      packageId: insertUser.packageId ?? null,
+      status: insertUser.status || "active",
+      diskUsage: insertUser.diskUsage ?? 0,
       createdAt: new Date()
     };
     this.users.set(user.id, user);
@@ -212,7 +217,13 @@ export class MemStorage implements IStorage {
   async createHostingPackage(insertPackage: InsertHostingPackage): Promise<HostingPackage> {
     const pkg: HostingPackage = {
       id: this.packageIdCounter++,
-      ...insertPackage,
+      name: insertPackage.name,
+      diskSpace: insertPackage.diskSpace,
+      bandwidth: insertPackage.bandwidth,
+      emailAccounts: insertPackage.emailAccounts,
+      databases: insertPackage.databases,
+      domains: insertPackage.domains,
+      status: insertPackage.status || "active",
       createdAt: new Date()
     };
     this.hostingPackages.set(pkg.id, pkg);
@@ -248,7 +259,10 @@ export class MemStorage implements IStorage {
   async createDomain(insertDomain: InsertDomain): Promise<Domain> {
     const domain: Domain = {
       id: this.domainIdCounter++,
-      ...insertDomain,
+      userId: insertDomain.userId,
+      domain: insertDomain.domain,
+      type: insertDomain.type,
+      status: insertDomain.status || "active",
       createdAt: new Date()
     };
     this.domains.set(domain.id, domain);
@@ -284,7 +298,11 @@ export class MemStorage implements IStorage {
   async createEmailAccount(insertEmail: InsertEmailAccount): Promise<EmailAccount> {
     const email: EmailAccount = {
       id: this.emailIdCounter++,
-      ...insertEmail,
+      userId: insertEmail.userId,
+      email: insertEmail.email,
+      password: insertEmail.password,
+      quota: insertEmail.quota,
+      status: insertEmail.status || "active",
       createdAt: new Date()
     };
     this.emailAccounts.set(email.id, email);
@@ -320,7 +338,11 @@ export class MemStorage implements IStorage {
   async createDatabase(insertDatabase: InsertDatabase): Promise<Database> {
     const db: Database = {
       id: this.databaseIdCounter++,
-      ...insertDatabase,
+      userId: insertDatabase.userId,
+      name: insertDatabase.name,
+      type: insertDatabase.type || "postgresql",
+      size: insertDatabase.size ?? 0,
+      status: insertDatabase.status || "active",
       createdAt: new Date()
     };
     this.databases.set(db.id, db);
@@ -362,7 +384,12 @@ export class MemStorage implements IStorage {
   async createFileEntry(insertFile: InsertFileEntry): Promise<FileEntry> {
     const file: FileEntry = {
       id: this.fileIdCounter++,
-      ...insertFile,
+      userId: insertFile.userId,
+      name: insertFile.name,
+      path: insertFile.path,
+      type: insertFile.type,
+      size: insertFile.size ?? 0,
+      mimeType: insertFile.mimeType ?? null,
       modifiedAt: new Date()
     };
     this.fileEntries.set(file.id, file);
