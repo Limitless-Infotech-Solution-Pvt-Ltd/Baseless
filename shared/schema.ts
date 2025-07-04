@@ -146,6 +146,103 @@ export const securityScans = pgTable("security_scans", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const dnsRecords = pgTable("dns_records", {
+  id: serial("id").primaryKey(),
+  domainId: integer("domain_id").notNull(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(), // subdomain or @
+  type: text("type").notNull(), // A, AAAA, CNAME, MX, TXT, NS
+  value: text("value").notNull(),
+  priority: integer("priority"), // for MX records
+  ttl: integer("ttl").default(3600),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const sslCertificates = pgTable("ssl_certificates", {
+  id: serial("id").primaryKey(),
+  domainId: integer("domain_id").notNull(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull().default("lets_encrypt"), // lets_encrypt, custom, wildcard
+  status: text("status").notNull().default("pending"), // pending, active, expired, failed
+  issuer: text("issuer"),
+  validFrom: timestamp("valid_from"),
+  validTo: timestamp("valid_to"),
+  autoRenew: boolean("auto_renew").default(true),
+  certificate: text("certificate"), // PEM format
+  privateKey: text("private_key"), // PEM format
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const webmailSettings = pgTable("webmail_settings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  theme: text("theme").notNull().default("default"),
+  signature: text("signature"),
+  autoReply: boolean("auto_reply").default(false),
+  autoReplyMessage: text("auto_reply_message"),
+  forwardingEnabled: boolean("forwarding_enabled").default(false),
+  forwardingAddress: text("forwarding_address"),
+  spamFilterLevel: text("spam_filter_level").notNull().default("medium"), // low, medium, high
+  language: text("language").notNull().default("en"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const codeProjects = pgTable("code_projects", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  language: text("language").notNull(), // html, css, js, php, python, etc.
+  framework: text("framework"), // react, vue, laravel, django, etc.
+  files: text("files"), // JSON array of file structure
+  isPublic: boolean("is_public").default(false),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const aiLearningData = pgTable("ai_learning_data", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  category: text("category").notNull(), // behavior, preferences, interests, usage_patterns
+  dataType: text("data_type").notNull(), // click, time_spent, feature_usage, preference
+  data: text("data").notNull(), // JSON data
+  context: text("context"), // Additional context information
+  weight: integer("weight").default(1), // Importance weight for learning
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const aiRecommendations = pgTable("ai_recommendations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull(), // feature, optimization, tutorial, upgrade
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  actionUrl: text("action_url"),
+  priority: integer("priority").default(1), // 1-10 priority
+  confidence: integer("confidence").default(50), // 0-100 confidence score
+  isShown: boolean("is_shown").default(false),
+  isAccepted: boolean("is_accepted").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const knowledgeBase = pgTable("knowledge_base", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(),
+  subcategory: text("subcategory"),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  tags: text("tags"), // JSON array of tags
+  difficulty: text("difficulty").notNull().default("beginner"), // beginner, intermediate, advanced
+  estimatedTime: integer("estimated_time"), // in minutes
+  isPublic: boolean("is_public").default(true),
+  views: integer("views").default(0),
+  rating: integer("rating").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -213,6 +310,43 @@ export const insertSecurityScanSchema = createInsertSchema(securityScans).omit({
   createdAt: true,
 });
 
+export const insertDnsRecordSchema = createInsertSchema(dnsRecords).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSslCertificateSchema = createInsertSchema(sslCertificates).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWebmailSettingsSchema = createInsertSchema(webmailSettings).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCodeProjectSchema = createInsertSchema(codeProjects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAiLearningDataSchema = createInsertSchema(aiLearningData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAiRecommendationSchema = createInsertSchema(aiRecommendations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeBaseSchema = createInsertSchema(knowledgeBase).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -252,3 +386,24 @@ export type InsertDashboardWidget = z.infer<typeof insertDashboardWidgetSchema>;
 
 export type SecurityScan = typeof securityScans.$inferSelect;
 export type InsertSecurityScan = z.infer<typeof insertSecurityScanSchema>;
+
+export type DnsRecord = typeof dnsRecords.$inferSelect;
+export type InsertDnsRecord = z.infer<typeof insertDnsRecordSchema>;
+
+export type SslCertificate = typeof sslCertificates.$inferSelect;
+export type InsertSslCertificate = z.infer<typeof insertSslCertificateSchema>;
+
+export type WebmailSettings = typeof webmailSettings.$inferSelect;
+export type InsertWebmailSettings = z.infer<typeof insertWebmailSettingsSchema>;
+
+export type CodeProject = typeof codeProjects.$inferSelect;
+export type InsertCodeProject = z.infer<typeof insertCodeProjectSchema>;
+
+export type AiLearningData = typeof aiLearningData.$inferSelect;
+export type InsertAiLearningData = z.infer<typeof insertAiLearningDataSchema>;
+
+export type AiRecommendation = typeof aiRecommendations.$inferSelect;
+export type InsertAiRecommendation = z.infer<typeof insertAiRecommendationSchema>;
+
+export type KnowledgeBase = typeof knowledgeBase.$inferSelect;
+export type InsertKnowledgeBase = z.infer<typeof insertKnowledgeBaseSchema>;

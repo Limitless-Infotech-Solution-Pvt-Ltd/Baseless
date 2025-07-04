@@ -22,7 +22,14 @@ import {
   insertBackupSchema,
   insertApiKeySchema,
   insertDashboardWidgetSchema,
-  insertSecurityScanSchema
+  insertSecurityScanSchema,
+  insertDnsRecordSchema,
+  insertSslCertificateSchema,
+  insertWebmailSettingsSchema,
+  insertCodeProjectSchema,
+  insertAiLearningDataSchema,
+  insertAiRecommendationSchema,
+  insertKnowledgeBaseSchema
 } from "@shared/schema";
 
 // Authentication middleware
@@ -835,6 +842,222 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(scan);
     } catch (error) {
       res.status(400).json({ error: "Invalid security scan data" });
+    }
+  });
+
+  // DNS Records
+  app.get("/api/dns-records/:domainId", requireAuth, async (req, res) => {
+    try {
+      const domainId = parseInt(req.params.domainId);
+      const records = await storage.getDnsRecordsByDomain(domainId);
+      res.json(records);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch DNS records" });
+    }
+  });
+
+  app.post("/api/dns-records", requireAuth, async (req, res) => {
+    try {
+      const recordData = insertDnsRecordSchema.parse(req.body);
+      const record = await storage.createDnsRecord(recordData);
+      res.status(201).json(record);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid DNS record data" });
+    }
+  });
+
+  app.put("/api/dns-records/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const recordData = insertDnsRecordSchema.partial().parse(req.body);
+      const record = await storage.updateDnsRecord(id, recordData);
+      if (!record) {
+        return res.status(404).json({ error: "DNS record not found" });
+      }
+      res.json(record);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid DNS record data" });
+    }
+  });
+
+  app.delete("/api/dns-records/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteDnsRecord(id);
+      if (!success) {
+        return res.status(404).json({ error: "DNS record not found" });
+      }
+      res.json({ message: "DNS record deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete DNS record" });
+    }
+  });
+
+  // SSL Certificates
+  app.get("/api/ssl-certificates/:domainId", requireAuth, async (req, res) => {
+    try {
+      const domainId = parseInt(req.params.domainId);
+      const certificates = await storage.getSslCertificatesByDomain(domainId);
+      res.json(certificates);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch SSL certificates" });
+    }
+  });
+
+  app.post("/api/ssl-certificates", requireAuth, async (req, res) => {
+    try {
+      const certificateData = insertSslCertificateSchema.parse(req.body);
+      const certificate = await storage.createSslCertificate(certificateData);
+      
+      // Create notification
+      const notification = await storage.createNotification({
+        userId: certificate.userId,
+        title: 'SSL Certificate Generation Started',
+        message: `SSL certificate generation for domain ID ${certificate.domainId} has been initiated.`,
+        type: 'info'
+      });
+      emitNotification(certificate.userId, notification);
+      
+      res.status(201).json(certificate);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid SSL certificate data" });
+    }
+  });
+
+  // Webmail Settings
+  app.get("/api/webmail/settings", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const settings = await storage.getWebmailSettings(user.id);
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch webmail settings" });
+    }
+  });
+
+  app.post("/api/webmail/settings", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const settingsData = insertWebmailSettingsSchema.parse({
+        ...req.body,
+        userId: user.id
+      });
+      const settings = await storage.createWebmailSettings(settingsData);
+      res.status(201).json(settings);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid webmail settings data" });
+    }
+  });
+
+  // Code Projects
+  app.get("/api/code-projects", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const projects = await storage.getCodeProjectsByUser(user.id);
+      res.json(projects);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch code projects" });
+    }
+  });
+
+  app.post("/api/code-projects", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const projectData = insertCodeProjectSchema.parse({
+        ...req.body,
+        userId: user.id
+      });
+      const project = await storage.createCodeProject(projectData);
+      res.status(201).json(project);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid code project data" });
+    }
+  });
+
+  app.put("/api/code-projects/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const projectData = insertCodeProjectSchema.partial().parse(req.body);
+      const project = await storage.updateCodeProject(id, projectData);
+      if (!project) {
+        return res.status(404).json({ error: "Code project not found" });
+      }
+      res.json(project);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid code project data" });
+    }
+  });
+
+  // AI Learning & Recommendations
+  app.post("/api/ai/learn", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const learningData = insertAiLearningDataSchema.parse({
+        ...req.body,
+        userId: user.id
+      });
+      const data = await storage.createAiLearningData(learningData);
+      res.status(201).json(data);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid learning data" });
+    }
+  });
+
+  app.get("/api/ai/recommendations", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const recommendations = await storage.getAiRecommendations(user.id);
+      res.json(recommendations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch recommendations" });
+    }
+  });
+
+  app.post("/api/ai/recommendations/:id/accept", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const recommendation = await storage.acceptAiRecommendation(id);
+      if (!recommendation) {
+        return res.status(404).json({ error: "Recommendation not found" });
+      }
+      res.json(recommendation);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to accept recommendation" });
+    }
+  });
+
+  // Knowledge Base
+  app.get("/api/knowledge-base", async (req, res) => {
+    try {
+      const category = req.query.category as string;
+      const articles = await storage.getKnowledgeBaseArticles(category);
+      res.json(articles);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch knowledge base articles" });
+    }
+  });
+
+  app.get("/api/knowledge-base/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const article = await storage.getKnowledgeBaseArticle(id);
+      if (!article) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+      await storage.incrementKnowledgeBaseViews(id);
+      res.json(article);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch article" });
+    }
+  });
+
+  app.post("/api/knowledge-base", requireAdmin, async (req, res) => {
+    try {
+      const articleData = insertKnowledgeBaseSchema.parse(req.body);
+      const article = await storage.createKnowledgeBaseArticle(articleData);
+      res.status(201).json(article);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid knowledge base article data" });
     }
   });
 
