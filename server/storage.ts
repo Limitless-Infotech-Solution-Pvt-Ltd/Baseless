@@ -1,9 +1,10 @@
 
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
 import { eq, desc, and, gte } from "drizzle-orm";
+import { db } from "./db";
 import type { 
+  User,
   InsertUser, 
+  UpsertUser,
   InsertHostingPackage, 
   InsertDomain, 
   InsertEmailAccount, 
@@ -33,24 +34,44 @@ import {
   securityScans
 } from "@shared/schema";
 
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is not set");
+interface IStorage {
+  // User operations for Replit Auth
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  // Other operations for legacy compatibility
+  createUser(userData: InsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
+  updateUser(id: string, userData: Partial<InsertUser>): Promise<User>;
+  deleteUser(id: string): Promise<boolean>;
+  getUsersCount(): Promise<number>;
 }
 
-const sql = neon(databaseUrl);
-const db = drizzle(sql);
-
-class Storage {
-  // Users
-  async createUser(userData: InsertUser) {
-    const [user] = await db.insert(users).values(userData).returning();
+class DatabaseStorage implements IStorage {
+  // User operations for Replit Auth
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
-  async getUser(id: number) {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // Legacy operations (for compatibility with existing code)
+  async createUser(userData: InsertUser) {
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
@@ -59,21 +80,16 @@ class Storage {
     return user;
   }
 
-  async getUserByUsername(username: string) {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
-  }
-
   async getAllUsers() {
     return await db.select().from(users);
   }
 
-  async updateUser(id: number, userData: Partial<InsertUser>) {
+  async updateUser(id: string, userData: Partial<InsertUser>) {
     const [user] = await db.update(users).set(userData).where(eq(users.id, id)).returning();
     return user;
   }
 
-  async deleteUser(id: number) {
+  async deleteUser(id: string) {
     const result = await db.delete(users).where(eq(users.id, id));
     return result.rowCount! > 0;
   }
@@ -316,4 +332,4 @@ class Storage {
   }
 }
 
-export const storage = new Storage();
+export const storage = new DatabaseStorage();
