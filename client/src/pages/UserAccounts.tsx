@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiCall, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatBytes, formatDate, getStatusColor, calculatePercentage } from "@/lib/utils";
 import type { User, HostingPackage } from "@shared/schema";
@@ -43,7 +43,10 @@ export default function UserAccounts() {
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserData) => {
       const { confirmPassword, ...userData } = data;
-      return await apiRequest("POST", "/api/users", userData);
+      return await apiCall("/api/users", {
+        method: "POST",
+        body: JSON.stringify(userData),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
