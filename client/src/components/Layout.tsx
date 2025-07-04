@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
+import QuickActionFab from "./QuickActionFab";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface LayoutProps {
@@ -24,6 +25,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <QuickActionFab />
       </TooltipProvider>
     </div>
   );
