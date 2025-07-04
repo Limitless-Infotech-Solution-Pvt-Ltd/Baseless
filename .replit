@@ -2,7 +2,7 @@ modules = ["nodejs-20", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["run"]
+packages = ["run", "php82Packages.deployer", "sbclPackages.deploy", "deploy-rs", "php83Packages.deployer", "azure-cli-extensions.deploy-to-azure"]
 
 [workflows]
 runButton = "Development Server"
