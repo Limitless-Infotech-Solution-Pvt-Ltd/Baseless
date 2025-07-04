@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { AnimatedTooltip } from "./AnimatedTooltip";
 import { 
   Plus, 
   Users, 
@@ -159,69 +159,74 @@ export default function QuickActionFab() {
           : "opacity-0 translate-y-4 pointer-events-none"
       )}>
         {actions.map((action, index) => (
-          <Tooltip key={action.label} delayDuration={0}>
-            <TooltipTrigger asChild>
-              <Button
-                asChild
-                size="sm"
-                className={cn(
-                  "w-12 h-12 rounded-full shadow-lg transition-all duration-200",
-                  "transform hover:scale-110 hover:shadow-xl",
-                  action.color,
-                  "animate-in slide-in-from-bottom-2 fade-in-0"
-                )}
-                style={{ 
-                  animationDelay: `${index * 50}ms`,
-                  animationFillMode: 'both'
-                }}
-                onClick={() => setIsOpen(false)}
-              >
-                <Link href={action.href}>
-                  {action.icon}
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left" className="bg-slate-800 text-white border-slate-700">
+          <AnimatedTooltip
+            key={action.label}
+            side="left"
+            animation="bounce"
+            delay={100}
+            content={
               <div className="flex flex-col items-start gap-1">
-                <p className="font-medium">{action.label}</p>
+                <p className="font-medium text-white">{action.label}</p>
                 {action.shortcut && (
                   <p className="text-xs text-gray-300">{action.shortcut}</p>
                 )}
               </div>
-            </TooltipContent>
-          </Tooltip>
+            }
+          >
+            <Button
+              asChild
+              size="sm"
+              className={cn(
+                "w-12 h-12 rounded-full shadow-lg transition-all duration-200",
+                "transform hover:scale-110 hover:shadow-xl",
+                action.color,
+                "animate-in slide-in-from-bottom-2 fade-in-0"
+              )}
+              style={{ 
+                animationDelay: `${index * 50}ms`,
+                animationFillMode: 'both'
+              }}
+              onClick={() => setIsOpen(false)}
+            >
+              <Link href={action.href}>
+                {action.icon}
+              </Link>
+            </Button>
+          </AnimatedTooltip>
         ))}
       </div>
 
       {/* Main FAB */}
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <Button
-            onClick={toggleOpen}
-            size="lg"
-            className={cn(
-              "w-14 h-14 rounded-full shadow-xl transition-all duration-300",
-              "bg-gradient-to-r from-blue-500 to-purple-600",
-              "hover:from-blue-600 hover:to-purple-700",
-              "transform hover:scale-110 hover:shadow-2xl",
-              "border-2 border-white/20",
-              isOpen && "rotate-45"
-            )}
-          >
-            {isOpen ? (
-              <X className="h-6 w-6 text-white" />
-            ) : (
-              <Plus className="h-6 w-6 text-white" />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="left" className="bg-slate-800 text-white border-slate-700">
+      <AnimatedTooltip
+        side="left"
+        animation="scale"
+        delay={150}
+        content={
           <div className="flex flex-col items-start gap-1">
-            <p className="font-medium">{isOpen ? "Close menu" : "Quick actions"}</p>
+            <p className="font-medium text-white">{isOpen ? "Close menu" : "Quick actions"}</p>
             <p className="text-xs text-gray-300">Ctrl+Q</p>
           </div>
-        </TooltipContent>
-      </Tooltip>
+        }
+      >
+        <Button
+          onClick={toggleOpen}
+          size="lg"
+          className={cn(
+            "w-14 h-14 rounded-full shadow-xl transition-all duration-300",
+            "bg-gradient-to-r from-blue-500 to-purple-600",
+            "hover:from-blue-600 hover:to-purple-700",
+            "transform hover:scale-110 hover:shadow-2xl",
+            "border-2 border-white/20",
+            isOpen && "rotate-45"
+          )}
+        >
+          {isOpen ? (
+            <X className="h-6 w-6 text-white" />
+          ) : (
+            <Plus className="h-6 w-6 text-white" />
+          )}
+        </Button>
+      </AnimatedTooltip>
 
       {/* Backdrop */}
       {isOpen && (
