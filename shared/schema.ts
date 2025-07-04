@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  role: text("role").notNull().default("user"), // user, admin
   packageId: integer("package_id"),
   status: text("status").notNull().default("active"), // active, suspended, deleted
   diskUsage: integer("disk_usage").default(0), // in MB

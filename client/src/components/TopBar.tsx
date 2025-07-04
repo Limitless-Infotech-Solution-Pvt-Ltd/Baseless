@@ -76,7 +76,7 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
             <i className="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
             <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">⌘K</kbd>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             <Button 
               variant="ghost" 
@@ -91,7 +91,7 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
                 </span>
               </span>
             </Button>
-            
+
             <Badge variant="secondary" className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700 border-green-200/50">
               <i className="fas fa-circle text-green-500 text-xs mr-2"></i>
               System Healthy

@@ -471,3 +471,268 @@ export class MemStorage implements IStorage {
 export const storage = db ? new DatabaseStorage() : new MemStorage();
 
 console.log(`Using ${db ? 'database' : 'in-memory'} storage for development`);
+
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Client } from 'pg';
+import * as schema from "@shared/schema";
+import { eq, sql } from "drizzle-orm";
+import { users } from '@shared/schema';
+import { type User, type InsertUser, type HostingPackage, type InsertHostingPackage, type Domain, type InsertDomain, type EmailAccount, type InsertEmailAccount, type Database, type InsertDatabase, type FileEntry, type InsertFileEntry, type ServerStats, type InsertServerStats } from '@shared/schema';
+
+export class DatabaseStorage {
+  private db: ReturnType<typeof drizzle> | null = null;
+
+  constructor() {
+    if (db) {
+      this.db = db;
+    }
+  }
+
+  // Users
+  async getUser(id: number): Promise<User | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    if (!this.db) throw new Error("Database not initialized");
+    const result = await this.db.insert(users).values(user).returning();
+    return result[0];
+  }
+
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.update(users).set(user).where(eq(users.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    if (!this.db) return false;
+    const result = await this.db.delete(users).where(eq(users.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    if (!this.db) return [];
+    return this.db.select().from(users);
+  }
+
+  async getUsersCount(): Promise<number> {
+    if (!this.db) return 0;
+    const result = await this.db.select({ count: sql<number>`count(*)` }).from(users);
+    return result[0]?.count || 0;
+  }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    if (!this.db) return null;
+    const result = await this.db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0] || null;
+  }
+
+  async getUserByUsername(username: string): Promise<User | null> {
+    if (!this.db) return null;
+    const result = await this.db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0] || null;
+  }
+
+  // Hosting Packages
+  async getHostingPackage(id: number): Promise<HostingPackage | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.select().from(hostingPackages).where(eq(hostingPackages.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createHostingPackage(pkg: InsertHostingPackage): Promise<HostingPackage> {
+    if (!this.db) throw new Error("Database not initialized");
+    const result = await this.db.insert(hostingPackages).values(pkg).returning();
+    return result[0];
+  }
+
+  async updateHostingPackage(id: number, pkg: Partial<InsertHostingPackage>): Promise<HostingPackage | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.update(hostingPackages).set(pkg).where(eq(hostingPackages.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteHostingPackage(id: number): Promise<boolean> {
+    if (!this.db) return false;
+    const result = await this.db.delete(hostingPackages).where(eq(hostingPackages.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getAllHostingPackages(): Promise<HostingPackage[]> {
+    if (!this.db) return [];
+    return this.db.select().from(hostingPackages);
+  }
+
+  // Domains
+  async getDomain(id: number): Promise<Domain | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.select().from(domains).where(eq(domains.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getDomainsByUserId(userId: number): Promise<Domain[]> {
+    if (!this.db) return [];
+    return this.db.select().from(domains).where(eq(domains.userId, userId));
+  }
+
+  async createDomain(domain: InsertDomain): Promise<Domain> {
+    if (!this.db) throw new Error("Database not initialized");
+    const result = await this.db.insert(domains).values(domain).returning();
+    return result[0];
+  }
+
+  async updateDomain(id: number, domain: Partial<InsertDomain>): Promise<Domain | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.update(domains).set(domain).where(eq(domains.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteDomain(id: number): Promise<boolean> {
+    if (!this.db) return false;
+    const result = await this.db.delete(domains).where(eq(domains.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getAllDomains(): Promise<Domain[]> {
+    if (!this.db) return [];
+    return this.db.select().from(domains);
+  }
+
+  // Email Accounts
+  async getEmailAccount(id: number): Promise<EmailAccount | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.select().from(emailAccounts).where(eq(emailAccounts.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getEmailAccountsByUserId(userId: number): Promise<EmailAccount[]> {
+    if (!this.db) return [];
+    return this.db.select().from(emailAccounts).where(eq(emailAccounts.userId, userId));
+  }
+
+  async createEmailAccount(email: InsertEmailAccount): Promise<EmailAccount> {
+    if (!this.db) throw new Error("Database not initialized");
+    const result = await this.db.insert(emailAccounts).values(email).returning();
+    return result[0];
+  }
+
+  async updateEmailAccount(id: number, email: Partial<InsertEmailAccount>): Promise<EmailAccount | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.update(emailAccounts).set(email).where(eq(emailAccounts.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteEmailAccount(id: number): Promise<boolean> {
+    if (!this.db) return false;
+    const result = await this.db.delete(emailAccounts).where(eq(emailAccounts.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getAllEmailAccounts(): Promise<EmailAccount[]> {
+    if (!this.db) return [];
+    return this.db.select().from(emailAccounts);
+  }
+
+  // Databases
+  async getDatabase(id: number): Promise<Database | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.select().from(databases).where(eq(databases.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getDatabasesByUserId(userId: number): Promise<Database[]> {
+    if (!this.db) return [];
+    return this.db.select().from(databases).where(eq(databases.userId, userId));
+  }
+
+  async createDatabase(db: InsertDatabase): Promise<Database> {
+    if (!this.db) throw new Error("Database not initialized");
+    const result = await this.db.insert(databases).values(db).returning();
+    return result[0];
+  }
+
+  async updateDatabase(id: number, db: Partial<InsertDatabase>): Promise<Database | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.update(databases).set(db).where(eq(databases.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteDatabase(id: number): Promise<boolean> {
+    if (!this.db) return false;
+    const result = await this.db.delete(databases).where(eq(databases.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getAllDatabases(): Promise<Database[]> {
+    if (!this.db) return [];
+    return this.db.select().from(databases);
+  }
+
+  // File Entries
+  async getFileEntry(id: number): Promise<FileEntry | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.select().from(fileEntries).where(eq(fileEntries.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getFileEntriesByUserId(userId: number): Promise<FileEntry[]> {
+    if (!this.db) return [];
+    return this.db.select().from(fileEntries).where(eq(fileEntries.userId, userId));
+  }
+
+  async getFileEntriesByUserIdAndPath(userId: number, path: string): Promise<FileEntry[]> {
+    if (!this.db) return [];
+    return this.db.select().from(fileEntries).where(eq(fileEntries.userId, userId)).where(eq(fileEntries.path, path));
+  }
+
+  async createFileEntry(file: InsertFileEntry): Promise<FileEntry> {
+    if (!this.db) throw new Error("Database not initialized");
+    const result = await this.db.insert(fileEntries).values(file).returning();
+    return result[0];
+  }
+
+  async updateFileEntry(id: number, file: Partial<InsertFileEntry>): Promise<FileEntry | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.update(fileEntries).set(file).where(eq(fileEntries.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteFileEntry(id: number): Promise<boolean> {
+    if (!this.db) return false;
+    const result = await this.db.delete(fileEntries).where(eq(fileEntries.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Server Stats
+  async getLatestServerStats(): Promise<ServerStats | undefined> {
+    if (!this.db) return undefined;
+    const result = await this.db.select().from(serverStats).orderBy(desc(serverStats.timestamp)).limit(1);
+    return result[0];
+  }
+
+  async createServerStats(stats: InsertServerStats): Promise<ServerStats> {
+    if (!this.db) throw new Error("Database not initialized");
+    const result = await this.db.insert(serverStats).values(stats).returning();
+    return result[0];
+  }
+
+  async getServerStatsHistory(limit: number): Promise<ServerStats[]> {
+    if (!this.db) return [];
+    return this.db.select().from(serverStats).orderBy(desc(serverStats.timestamp)).limit(limit);
+  }
+}
