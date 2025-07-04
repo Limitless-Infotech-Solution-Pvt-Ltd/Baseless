@@ -2,6 +2,8 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import passport from "passport";
 import bcrypt from "bcrypt";
+import speakeasy from "speakeasy";
+import QRCode from "qrcode";
 import { storage } from "./storage";
 import { 
   insertUserSchema, 
@@ -70,13 +72,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
     const user = req.user as any;
+    const { twoFactorToken } = req.body;
+
+    // Check if 2FA is enabled for this user
+    if (user.twoFactorEnabled) {
+      if (!twoFactorToken) {
+        return res.status(200).json({
+          message: "2FA required",
+          requiresTwoFactor: true,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email
+          }
+        });
+      }
+
+      // Verify 2FA token
+      const verified = speakeasy.totp.verify({
+        secret: user.twoFactorSecret,
+        encoding: 'base32',
+        token: twoFactorToken,
+        window: 2
+      });
+
+      if (!verified) {
+        return res.status(400).json({ error: "Invalid 2FA token" });
+      }
+    }
+
     res.json({
       message: "Login successful",
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role || 'user'
+        role: user.role || 'user',
+        twoFactorEnabled: user.twoFactorEnabled
       }
     });
   });
@@ -98,8 +130,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       email: user.email,
       role: user.role || 'user',
       packageId: user.packageId,
-      status: user.status
+      status: user.status,
+      twoFactorEnabled: user.twoFactorEnabled
     });
+  });
+
+  // 2FA Setup - Generate QR code
+  app.post("/api/auth/2fa/setup", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      if (user.twoFactorEnabled) {
+        return res.status(400).json({ error: "2FA is already enabled" });
+      }
+
+      const secret = speakeasy.generateSecret({
+        name: `Baseless Hosting (${user.email})`,
+        issuer: 'Baseless Hosting'
+      });
+
+      const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+      res.json({
+        secret: secret.base32,
+        qrCode: qrCodeUrl,
+        manualEntryKey: secret.base32
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to setup 2FA" });
+    }
+  });
+
+  // 2FA Verify and Enable
+  app.post("/api/auth/2fa/verify", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { token, secret } = req.body;
+
+      if (!token || !secret) {
+        return res.status(400).json({ error: "Token and secret are required" });
+      }
+
+      const verified = speakeasy.totp.verify({
+        secret: secret,
+        encoding: 'base32',
+        token: token,
+        window: 2
+      });
+
+      if (!verified) {
+        return res.status(400).json({ error: "Invalid token" });
+      }
+
+      // Save the secret and enable 2FA
+      await storage.updateUser2FA(user.id, secret, true);
+
+      res.json({ message: "2FA enabled successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to enable 2FA" });
+    }
+  });
+
+  // 2FA Disable
+  app.post("/api/auth/2fa/disable", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { password } = req.body;
+
+      if (!password) {
+        return res.status(400).json({ error: "Password is required" });
+      }
+
+      // Verify current password
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) {
+        return res.status(400).json({ error: "Invalid password" });
+      }
+
+      await storage.disable2FA(user.id);
+
+      res.json({ message: "2FA disabled successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to disable 2FA" });
+    }
   });
 
   // Users (protected routes)

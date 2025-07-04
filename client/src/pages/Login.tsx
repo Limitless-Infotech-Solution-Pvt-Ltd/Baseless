@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [twoFactorToken, setTwoFactorToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,14 +27,27 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          twoFactorToken: requiresTwoFactor ? twoFactorToken : undefined 
+        }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        navigate("/dashboard");
+        if (data.requiresTwoFactor) {
+          setRequiresTwoFactor(true);
+          setError("");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
-        const data = await response.json();
         setError(data.error || "Login failed");
+        if (data.error === "Invalid 2FA token") {
+          setTwoFactorToken("");
+        }
       }
     } catch (err) {
       setError("Network error occurred");
@@ -57,40 +72,77 @@ export default function Login() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="Enter your email"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="Enter your password"
-              />
-            </div>
-            
+
+            {!requiresTwoFactor && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="Enter your password"
+                  />
+                </div>
+              </>
+            )}
+
+            {requiresTwoFactor && (
+              <div className="space-y-2">
+                <Label htmlFor="twoFactorToken">Two-Factor Authentication Code</Label>
+                <Input
+                  id="twoFactorToken"
+                  type="text"
+                  placeholder="Enter 6-digit code"
+                  value={twoFactorToken}
+                  onChange={(e) => setTwoFactorToken(e.target.value)}
+                  maxLength={6}
+                  required
+                />
+                <p className="text-sm text-gray-600">
+                  Enter the 6-digit code from your authenticator app.
+                </p>
+              </div>
+            )}
+
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700"
               disabled={loading}
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Logging in..." : requiresTwoFactor ? "Verify Code" : "Login"}
             </Button>
+
+            {requiresTwoFactor && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  setRequiresTwoFactor(false);
+                  setTwoFactorToken("");
+                  setError("");
+                }}
+              >
+                Back to Login
+              </Button>
+            )}
           </form>
-          
+
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{" "}

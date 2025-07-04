@@ -12,6 +12,8 @@ export const users = pgTable("users", {
   status: text("status").notNull().default("active"), // active, suspended, deleted
   diskUsage: integer("disk_usage").default(0), // in MB
   createdAt: timestamp("created_at").defaultNow(),
+  twoFactorSecret: text("two_factor_secret"),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false)
 });
 
 export const hostingPackages = pgTable("hosting_packages", {
