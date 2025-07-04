@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +41,7 @@ export default function Login() {
           setRequiresTwoFactor(true);
           setError("");
         } else {
-          navigate("/dashboard");
+          setLocation("/dashboard");
         }
       } else {
         setError(data.error || "Login failed");
@@ -148,7 +148,7 @@ export default function Login() {
               Don't have an account?{" "}
               <Button
                 variant="link"
-                onClick={() => navigate("/register")}
+                onClick={() => setLocation("/register")}
                 className="p-0 text-blue-600"
               >
                 Register here
