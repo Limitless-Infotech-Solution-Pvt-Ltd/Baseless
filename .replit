@@ -14,9 +14,11 @@ args = "cd server && npm install && npm run dev"
 
 [nix]
 channel = "stable-24_05"
+packages = ["deepin.dwayland", "libcardiacarrest", "gnomeExtensions.net-speed", "python311Packages.aionanoleaf", "gnomeExtensions.window-calls-extended"]
 
 [deployment]
 run = ["sh", "-c", "npm start"]
 
 [[ports]]
 localPort = 5000
+externalPort = 80
