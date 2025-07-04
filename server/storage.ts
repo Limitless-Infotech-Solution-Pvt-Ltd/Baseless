@@ -1,3 +1,4 @@
+
 import { 
   users, 
   hostingPackages, 
@@ -22,7 +23,7 @@ import {
   type InsertServerStats
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -78,6 +79,10 @@ export interface IStorage {
   getLatestServerStats(): Promise<ServerStats | undefined>;
   createServerStats(stats: InsertServerStats): Promise<ServerStats>;
   getServerStatsHistory(limit: number): Promise<ServerStats[]>;
+
+  // 2FA Methods
+  updateUser2FA?(id: number, secret: string, enabled: boolean): Promise<boolean>;
+  disable2FA?(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -467,20 +472,8 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use database storage if available, otherwise fallback to memory storage
-export const storage = db ? new DatabaseStorage() : new MemStorage();
-
-console.log(`Using ${db ? 'database' : 'in-memory'} storage for development`);
-
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import * as schema from "@shared/schema";
-import { eq, sql } from "drizzle-orm";
-import { users } from '@shared/schema';
-import { type User, type InsertUser, type HostingPackage, type InsertHostingPackage, type Domain, type InsertDomain, type EmailAccount, type InsertEmailAccount, type Database, type InsertDatabase, type FileEntry, type InsertFileEntry, type ServerStats, type InsertServerStats } from '@shared/schema';
-
-export class DatabaseStorage {
-  private db: ReturnType<typeof drizzle> | null = null;
+export class DatabaseStorage implements IStorage {
+  private db: ReturnType<typeof import('drizzle-orm/node-postgres').drizzle> | null = null;
 
   constructor() {
     if (db) {
@@ -507,7 +500,7 @@ export class DatabaseStorage {
     return result[0];
   }
 
-  async createUser(userData: any) {
+  async createUser(userData: any): Promise<User> {
     if (!this.db) throw new Error("Database not initialized");
     const [user] = await this.db.insert(users).values({
       ...userData,
@@ -537,18 +530,6 @@ export class DatabaseStorage {
     if (!this.db) return 0;
     const result = await this.db.select({ count: sql<number>`count(*)` }).from(users);
     return result[0]?.count || 0;
-  }
-
-  async getUserByEmail(email: string): Promise<User | null> {
-    if (!this.db) return null;
-    const result = await this.db.select().from(users).where(eq(users.email, email)).limit(1);
-    return result[0] || null;
-  }
-
-  async getUserByUsername(username: string): Promise<User | null> {
-    if (!this.db) return null;
-    const result = await this.db.select().from(users).where(eq(users.username, username)).limit(1);
-    return result[0] || null;
   }
 
   // Hosting Packages
@@ -740,6 +721,7 @@ export class DatabaseStorage {
   }
 
   async updateUser2FA(id: number, secret: string, enabled: boolean): Promise<boolean> {
+    if (!this.db) return false;
     try {
       const result = await this.db
         .update(users)
@@ -748,7 +730,7 @@ export class DatabaseStorage {
           twoFactorEnabled: enabled 
         })
         .where(eq(users.id, id)).returning();
-      return result.rowCount > 0;
+      return result.length > 0;
     } catch (error) {
       console.error("Error updating user 2FA:", error);
       return false;
@@ -756,6 +738,7 @@ export class DatabaseStorage {
   }
 
   async disable2FA(id: number): Promise<boolean> {
+    if (!this.db) return false;
     try {
       const result = await this.db
         .update(users)
@@ -764,10 +747,15 @@ export class DatabaseStorage {
           twoFactorEnabled: false 
         })
         .where(eq(users.id, id)).returning();
-      return result.rowCount > 0;
+      return result.length > 0;
     } catch (error) {
       console.error("Error disabling 2FA:", error);
       return false;
     }
   }
 }
+
+// Initialize storage after class definitions
+export const storage: IStorage = db ? new DatabaseStorage() : new MemStorage();
+
+console.log(`Using ${db ? 'database' : 'in-memory'} storage for development`);
