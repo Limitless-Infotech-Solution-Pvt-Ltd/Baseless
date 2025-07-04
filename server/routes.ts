@@ -1,5 +1,7 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import passport from "passport";
+import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { 
   insertUserSchema, 
@@ -11,9 +13,97 @@ import {
   insertServerStatsSchema
 } from "@shared/schema";
 
+// Authentication middleware
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ error: "Authentication required" });
+};
+
+// Admin middleware
+const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated() && (req.user as any)?.role === 'admin') {
+    return next();
+  }
+  res.status(403).json({ error: "Admin access required" });
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Users
-  app.get("/api/users", async (req, res) => {
+  // Authentication routes
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { username, email, password } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "User already exists" });
+      }
+
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(400).json({ error: "Username already taken" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      // Create user
+      const userData = {
+        username,
+        email,
+        password: hashedPassword,
+        packageId: 1, // Default package
+        status: "active"
+      };
+
+      const user = await storage.createUser(userData);
+      res.status(201).json({ 
+        message: "User created successfully",
+        user: { id: user.id, username: user.username, email: user.email }
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create user" });
+    }
+  });
+
+  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
+    const user = req.user as any;
+    res.json({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role || 'user'
+      }
+    });
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ error: "Logout failed" });
+      }
+      res.json({ message: "Logout successful" });
+    });
+  });
+
+  app.get("/api/auth/me", requireAuth, (req, res) => {
+    const user = req.user as any;
+    res.json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role || 'user',
+      packageId: user.packageId,
+      status: user.status
+    });
+  });
+
+  // Users (protected routes)
+  app.get("/api/users", requireAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -72,8 +162,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Hosting Packages
-  app.get("/api/hosting-packages", async (req, res) => {
+  // Hosting Packages (protected routes)
+  app.get("/api/hosting-packages", requireAuth, async (req, res) => {
     try {
       const packages = await storage.getAllHostingPackages();
       res.json(packages);
@@ -132,8 +222,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Domains
-  app.get("/api/domains", async (req, res) => {
+  // Domains (protected routes)
+  app.get("/api/domains", requireAuth, async (req, res) => {
     try {
       const domains = await storage.getAllDomains();
       res.json(domains);

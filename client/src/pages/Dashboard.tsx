@@ -20,7 +20,7 @@ export default function Dashboard() {
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
+            <Card key={i} className="border-slate-200/50 shadow-lg">
               <CardContent className="p-6">
                 <Skeleton className="h-8 w-full mb-2" />
                 <Skeleton className="h-6 w-2/3" />
@@ -37,17 +37,23 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white shadow-xl">
+        <h1 className="text-3xl font-bold mb-2">Welcome back, Admin!</h1>
+        <p className="text-white/80">Your server is running smoothly with optimal performance.</p>
+      </div>
+
       {/* Server Health Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="border-slate-200/50 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-white to-green-50/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">Server Status</p>
                 <p className="text-2xl font-bold text-green-600">Online</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <i className="fas fa-check-circle text-green-600 text-xl"></i>
+              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                <i className="fas fa-check-circle text-white text-xl"></i>
               </div>
             </div>
             <div className="mt-4">
@@ -59,15 +65,15 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-200/50 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-white to-blue-50/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">Active Accounts</p>
-                <p className="text-2xl font-bold text-slate-900">{activeUsers}</p>
+                <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{activeUsers}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <i className="fas fa-users text-blue-600 text-xl"></i>
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <i className="fas fa-users text-white text-xl"></i>
               </div>
             </div>
             <div className="mt-4">
@@ -79,21 +85,21 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-200/50 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-white to-orange-50/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">CPU Usage</p>
                 <p className="text-2xl font-bold text-slate-900">{serverStats?.cpuUsage || 0}%</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <i className="fas fa-microchip text-orange-600 text-xl"></i>
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <i className="fas fa-microchip text-white text-xl"></i>
               </div>
             </div>
             <div className="mt-4">
-              <div className="w-full bg-slate-200 rounded-full h-2">
+              <div className="w-full bg-slate-200/50 rounded-full h-2 overflow-hidden">
                 <div 
-                  className="bg-orange-600 h-2 rounded-full transition-all duration-300" 
+                  className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-300 shadow-sm" 
                   style={{ width: `${serverStats?.cpuUsage || 0}%` }}
                 ></div>
               </div>
@@ -101,21 +107,21 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-200/50 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-white to-purple-50/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">Memory Usage</p>
                 <p className="text-2xl font-bold text-slate-900">{serverStats?.memoryUsage || 0}%</p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <i className="fas fa-memory text-purple-600 text-xl"></i>
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                <i className="fas fa-memory text-white text-xl"></i>
               </div>
             </div>
             <div className="mt-4">
-              <div className="w-full bg-slate-200 rounded-full h-2">
+              <div className="w-full bg-slate-200/50 rounded-full h-2 overflow-hidden">
                 <div 
-                  className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300 shadow-sm" 
                   style={{ width: `${serverStats?.memoryUsage || 0}%` }}
                 ></div>
               </div>
@@ -126,15 +132,15 @@ export default function Dashboard() {
 
       {/* Recent Activity & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+        <Card className="border-slate-200/50 shadow-lg">
+          <CardHeader className="border-b border-slate-100">
+            <CardTitle className="text-lg font-semibold text-slate-900">Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <i className="fas fa-user-plus text-green-600 text-sm"></i>
+              <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+                  <i className="fas fa-user-plus text-white text-sm"></i>
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-900">New account created</p>
@@ -142,11 +148,12 @@ export default function Dashboard() {
                     {users?.[0]?.email || "New user"} - {users?.[0]?.createdAt ? new Date(users[0].createdAt).toLocaleDateString() : "Recently"}
                   </p>
                 </div>
+                <Badge variant="secondary" className="bg-green-100 text-green-700 border-0">New</Badge>
               </div>
               
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <i className="fas fa-server text-blue-600 text-sm"></i>
+              <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                  <i className="fas fa-server text-white text-sm"></i>
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-900">Server stats updated</p>
@@ -156,59 +163,71 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <i className="fas fa-shield-alt text-yellow-600 text-sm"></i>
+              <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-50/50 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
+                  <i className="fas fa-shield-alt text-white text-sm"></i>
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-900">Security scan completed</p>
                   <p className="text-xs text-slate-500">No threats found - System healthy</p>
                 </div>
+                <Badge variant="secondary" className="bg-green-100 text-green-700 border-0">
+                  <i className="fas fa-check text-xs mr-1"></i>
+                  Secure
+                </Badge>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+        <Card className="border-slate-200/50 shadow-lg">
+          <CardHeader className="border-b border-slate-100">
+            <CardTitle className="text-lg font-semibold text-slate-900">Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="grid grid-cols-2 gap-4">
               <Button 
                 variant="outline" 
-                className="flex flex-col items-center p-4 h-auto"
+                className="flex flex-col items-center p-6 h-auto border-slate-200/50 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group"
                 onClick={() => window.location.href = "/accounts"}
               >
-                <i className="fas fa-user-plus text-blue-600 text-xl mb-2"></i>
-                <span className="text-sm font-medium">Create Account</span>
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
+                  <i className="fas fa-user-plus text-white text-lg"></i>
+                </div>
+                <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-700">Create Account</span>
               </Button>
               
               <Button 
                 variant="outline" 
-                className="flex flex-col items-center p-4 h-auto"
+                className="flex flex-col items-center p-6 h-auto border-slate-200/50 hover:border-green-300 hover:bg-green-50/50 transition-all group"
                 onClick={() => window.location.href = "/packages"}
               >
-                <i className="fas fa-box text-green-600 text-xl mb-2"></i>
-                <span className="text-sm font-medium">New Package</span>
+                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
+                  <i className="fas fa-box text-white text-lg"></i>
+                </div>
+                <span className="text-sm font-medium text-slate-700 group-hover:text-green-700">New Package</span>
               </Button>
               
               <Button 
                 variant="outline" 
-                className="flex flex-col items-center p-4 h-auto"
+                className="flex flex-col items-center p-6 h-auto border-slate-200/50 hover:border-purple-300 hover:bg-purple-50/50 transition-all group"
                 onClick={() => window.location.href = "/backups"}
               >
-                <i className="fas fa-shield-alt text-purple-600 text-xl mb-2"></i>
-                <span className="text-sm font-medium">Run Backup</span>
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
+                  <i className="fas fa-shield-alt text-white text-lg"></i>
+                </div>
+                <span className="text-sm font-medium text-slate-700 group-hover:text-purple-700">Run Backup</span>
               </Button>
               
               <Button 
                 variant="outline" 
-                className="flex flex-col items-center p-4 h-auto"
+                className="flex flex-col items-center p-6 h-auto border-slate-200/50 hover:border-orange-300 hover:bg-orange-50/50 transition-all group"
                 onClick={() => window.location.href = "/monitoring"}
               >
-                <i className="fas fa-chart-line text-orange-600 text-xl mb-2"></i>
-                <span className="text-sm font-medium">View Logs</span>
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
+                  <i className="fas fa-chart-line text-white text-lg"></i>
+                </div>
+                <span className="text-sm font-medium text-slate-700 group-hover:text-orange-700">View Logs</span>
               </Button>
             </div>
           </CardContent>
