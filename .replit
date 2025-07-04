@@ -1,0 +1,13 @@
+modules = ["nodejs-20"]
+
+[nix]
+channel = "stable-24_05"
+
+[rules]
+
+[rules.formatter]
+
+[rules.formatter.fileExtensions]
+
+[rules.formatter.fileExtensions.".json"]
+id = "module:nodejs-20/languageServer:typescript-language-server"
