@@ -1,11 +1,15 @@
 
-<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#7C3AED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DB2777;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <path d="M50 60C30 60 20 80 20 100C20 120 30 140 50 140C70 140 80 120 80 100C80 90 85 85 95 85C105 85 110 90 110 100C110 120 120 140 140 140C160 140 170 120 170 100C170 80 160 60 140 60C120 60 110 80 110 100C110 110 105 115 95 115C85 115 80 110 80 100C80 80 70 60 50 60Z" fill="url(#logoGradient)"/>
+  <path d="M12 8C12 4.686 14.686 2 18 2H46C49.314 2 52 4.686 52 8V20C52 23.314 49.314 26 46 26H32L28 30L24 26H18C14.686 26 12 23.314 12 20V8Z" fill="url(#logoGradient)"/>
+  <path d="M8 18C8 14.686 10.686 12 14 12H42C45.314 12 48 14.686 48 18V30C48 33.314 45.314 36 42 36H28L24 40L20 36H14C10.686 36 8 33.314 8 30V18Z" fill="url(#logoGradient)" fill-opacity="0.8"/>
+  <path d="M4 28C4 24.686 6.686 22 10 22H38C41.314 22 44 24.686 44 28V40C44 43.314 41.314 46 38 46H24L20 50L16 46H10C6.686 46 4 43.314 4 40V28Z" fill="url(#logoGradient)" fill-opacity="0.6"/>
+  <circle cx="32" cy="32" r="8" fill="white"/>
+  <path d="M28 32C28 29.791 29.791 28 32 28S36 29.791 36 32S34.209 36 32 36S28 34.209 28 32Z" fill="url(#logoGradient)"/>
 </svg>
