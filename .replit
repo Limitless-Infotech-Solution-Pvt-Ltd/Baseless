@@ -1,3 +1,5 @@
+modules = ["nodejs-20"]
+
 [workflows]
 runButton = "Start Server"
 

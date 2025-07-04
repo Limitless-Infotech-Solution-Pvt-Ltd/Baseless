@@ -507,10 +507,13 @@ export class DatabaseStorage {
     return result[0];
   }
 
-  async createUser(user: InsertUser): Promise<User> {
+  async createUser(userData: any) {
     if (!this.db) throw new Error("Database not initialized");
-    const result = await this.db.insert(users).values(user).returning();
-    return result[0];
+    const [user] = await this.db.insert(users).values({
+      ...userData,
+      role: userData.role || 'user'
+    }).returning();
+    return user;
   }
 
   async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
