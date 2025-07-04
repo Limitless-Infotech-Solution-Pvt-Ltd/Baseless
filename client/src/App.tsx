@@ -13,6 +13,9 @@ import PlaceholderPage from "./pages/PlaceholderPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/not-found";
+import SSLCertificates from "./pages/SSLCertificates";
+import AdvancedMonitoring from "./pages/AdvancedMonitoring";
+import { Redirect, lazy } from 'wouter';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthProvider();
@@ -60,7 +63,8 @@ function Router() {
         <Route path="/code-editor" component={lazy(() => import("./pages/BaselessCode"))} />
         <Route path="/email" component={() => <PlaceholderPage title="Email Management" icon="fas fa-envelope" description="Create and manage email accounts, forwarders, and autoresponders" buttonText="Create Email Account" />} />
         <Route path="/databases" component={() => <PlaceholderPage title="Database Management" icon="fas fa-database" description="Create and manage PostgreSQL databases and users" buttonText="Create Database" />} />
-        <Route path="/monitoring" component={() => <PlaceholderPage title="Resource Monitoring" icon="fas fa-chart-bar" description="Monitor server resources and user account usage" buttonText="View Reports" />} />
+        <Route path="/monitoring" component={AdvancedMonitoring} />
+        <Route path="/ssl" component={SSLCertificates} />
         <Route path="/backups" component={() => <PlaceholderPage title="Backup Management" icon="fas fa-shield-alt" description="Schedule and manage server and account backups" buttonText="Create Backup" />} />
         <Route path="/security" component={() => <PlaceholderPage title="Security Center" icon="fas fa-lock" description="Manage security settings and access controls" buttonText="Configure Security" />} />
         <Route component={NotFound} />

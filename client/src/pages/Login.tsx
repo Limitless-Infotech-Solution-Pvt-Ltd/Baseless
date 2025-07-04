@@ -1,20 +1,32 @@
+
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Logo } from "@/components/Logo";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [twoFactorToken, setTwoFactorToken] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [, setLocation] = useLocation();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const { login } = useAuth();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +39,10 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          email, 
-          password, 
-          twoFactorToken: requiresTwoFactor ? twoFactorToken : undefined 
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          twoFactorToken: requiresTwoFactor ? twoFactorToken : undefined,
         }),
       });
 
@@ -41,6 +53,7 @@ export default function Login() {
           setRequiresTwoFactor(true);
           setError("");
         } else {
+          login(data.user);
           setLocation("/dashboard");
         }
       } else {
@@ -58,12 +71,20 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
+          <div className="mx-auto mb-4">
+            <Logo size="lg" />
+          </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
-            Login to Baseless
+            {requiresTwoFactor ? "Two-Factor Authentication" : "Login to Baseless"}
           </CardTitle>
-          <p className="text-gray-600">Access your hosting control panel</p>
+          <p className="text-gray-600">
+            {requiresTwoFactor 
+              ? "Enter the 6-digit code from your authenticator app"
+              : "Access your hosting control panel"
+            }
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -73,15 +94,16 @@ export default function Login() {
               </Alert>
             )}
 
-            {!requiresTwoFactor && (
+            {!requiresTwoFactor ? (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formData.email}
+                    onChange={handleChange}
                     required
                     placeholder="Enter your email"
                   />
@@ -91,46 +113,43 @@ export default function Login() {
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
+                    name="password"
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formData.password}
+                    onChange={handleChange}
                     required
                     placeholder="Enter your password"
                   />
                 </div>
               </>
-            )}
-
-            {requiresTwoFactor && (
+            ) : (
               <div className="space-y-2">
-                <Label htmlFor="twoFactorToken">Two-Factor Authentication Code</Label>
+                <Label htmlFor="twoFactorToken">Authentication Code</Label>
                 <Input
                   id="twoFactorToken"
+                  name="twoFactorToken"
                   type="text"
-                  placeholder="Enter 6-digit code"
                   value={twoFactorToken}
                   onChange={(e) => setTwoFactorToken(e.target.value)}
-                  maxLength={6}
                   required
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  className="text-center text-2xl tracking-widest"
                 />
-                <p className="text-sm text-gray-600">
-                  Enter the 6-digit code from your authenticator app.
+                <p className="text-sm text-gray-500 text-center">
+                  Check your authenticator app for the current code
                 </p>
               </div>
             )}
 
-            <Button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={loading}
-            >
-              {loading ? "Logging in..." : requiresTwoFactor ? "Verify Code" : "Login"}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Signing in..." : requiresTwoFactor ? "Verify Code" : "Sign In"}
             </Button>
 
             {requiresTwoFactor && (
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 className="w-full"
                 onClick={() => {
                   setRequiresTwoFactor(false);
@@ -141,20 +160,20 @@ export default function Login() {
                 Back to Login
               </Button>
             )}
-          </form>
 
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Button
-                variant="link"
-                onClick={() => setLocation("/register")}
-                className="p-0 text-blue-600"
-              >
-                Register here
-              </Button>
-            </p>
-          </div>
+            {!requiresTwoFactor && (
+              <div className="text-center text-sm">
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setLocation("/register")}
+                  className="text-blue-600 hover:underline"
+                >
+                  Sign up
+                </button>
+              </div>
+            )}
+          </form>
         </CardContent>
       </Card>
     </div>
