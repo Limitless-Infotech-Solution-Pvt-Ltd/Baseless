@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import UserAccounts from "./pages/UserAccounts";
 import HostingPackages from "./pages/HostingPackages";
 import FileManager from "./pages/FileManager";
+import TwoFactorSetup from "./pages/TwoFactorSetup";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/accounts" component={UserAccounts} />
         <Route path="/packages" component={HostingPackages} />
         <Route path="/files" component={FileManager} />
+        <Route path="/2fa-setup" component={TwoFactorSetup} />
         <Route path="/domains" component={() => <PlaceholderPage title="Domain Management" icon="fas fa-globe" description="Manage domains, subdomains, and DNS settings" buttonText="Add Domain" />} />
         <Route path="/email" component={() => <PlaceholderPage title="Email Management" icon="fas fa-envelope" description="Create and manage email accounts, forwarders, and autoresponders" buttonText="Create Email Account" />} />
         <Route path="/databases" component={() => <PlaceholderPage title="Database Management" icon="fas fa-database" description="Create and manage PostgreSQL databases and users" buttonText="Create Database" />} />

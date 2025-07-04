@@ -738,4 +738,36 @@ export class DatabaseStorage {
     if (!this.db) return [];
     return this.db.select().from(serverStats).orderBy(desc(serverStats.timestamp)).limit(limit);
   }
+
+  async updateUser2FA(id: number, secret: string, enabled: boolean): Promise<boolean> {
+    try {
+      const result = await this.db
+        .update(users)
+        .set({ 
+          twoFactorSecret: secret,
+          twoFactorEnabled: enabled 
+        })
+        .where(eq(users.id, id)).returning();
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error updating user 2FA:", error);
+      return false;
+    }
+  }
+
+  async disable2FA(id: number): Promise<boolean> {
+    try {
+      const result = await this.db
+        .update(users)
+        .set({ 
+          twoFactorSecret: null,
+          twoFactorEnabled: false 
+        })
+        .where(eq(users.id, id)).returning();
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error disabling 2FA:", error);
+      return false;
+    }
+  }
 }
