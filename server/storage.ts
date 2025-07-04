@@ -21,6 +21,8 @@ import {
   type ServerStats,
   type InsertServerStats
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -100,64 +102,98 @@ export class MemStorage implements IStorage {
   }
 
   private initializeDefaultData() {
-    // Create default hosting packages
-    this.createHostingPackage({
+    // Sample hosting packages
+    this.hostingPackages.set(1, {
+      id: 1,
       name: "Basic",
-      diskSpace: 2,
-      bandwidth: 20,
+      diskSpace: 1,
+      bandwidth: 10,
       emailAccounts: 5,
-      databases: 2,
+      databases: 1,
       domains: 1,
-      status: "active"
+      status: "active",
+      createdAt: new Date()
     });
 
-    this.createHostingPackage({
-      name: "Standard",
+    this.hostingPackages.set(2, {
+      id: 2,
+      name: "Professional",
       diskSpace: 5,
       bandwidth: 50,
-      emailAccounts: 15,
+      emailAccounts: 25,
       databases: 5,
-      domains: 3,
-      status: "active"
+      domains: 5,
+      status: "active",
+      createdAt: new Date()
     });
 
-    this.createHostingPackage({
-      name: "Premium",
-      diskSpace: 10,
-      bandwidth: -1, // Unlimited
-      emailAccounts: -1, // Unlimited
-      databases: -1, // Unlimited
-      domains: 10,
-      status: "active"
+    this.hostingPackages.set(3, {
+      id: 3,
+      name: "Enterprise",
+      diskSpace: 20,
+      bandwidth: 200,
+      emailAccounts: 100,
+      databases: 20,
+      domains: 20,
+      status: "active",
+      createdAt: new Date()
     });
 
-    // Create sample users
-    this.createUser({
-      username: "john.smith",
-      email: "john.smith@example.com",
+    // Sample users
+    this.users.set(1, {
+      id: 1,
+      username: "admin",
+      email: "admin@baseless.local",
       password: "hashed_password",
       packageId: 3,
       status: "active",
-      diskUsage: 2150
+      diskUsage: 1024,
+      createdAt: new Date(Date.now() - 86400000)
     });
 
-    this.createUser({
-      username: "sarah.johnson",
-      email: "sarah.johnson@example.com",
+    this.users.set(2, {
+      id: 2,
+      username: "johndoe",
+      email: "john@example.com",
       password: "hashed_password",
       packageId: 2,
       status: "active",
-      diskUsage: 1500
+      diskUsage: 512,
+      createdAt: new Date(Date.now() - 172800000)
     });
 
-    // Create sample server stats
-    this.createServerStats({
-      cpuUsage: 23,
-      memoryUsage: 67,
-      diskUsage: 45,
-      activeUsers: 247,
-      uptime: 2592000 // 30 days
+    this.users.set(3, {
+      id: 3,
+      username: "janesmith",
+      email: "jane@example.com",
+      password: "hashed_password",
+      packageId: 1,
+      status: "active",
+      diskUsage: 256,
+      createdAt: new Date(Date.now() - 259200000)
     });
+
+    // Generate initial server stats
+    this.generateServerStats();
+
+    this.userIdCounter = 4;
+    this.packageIdCounter = 4;
+  }
+
+  private generateServerStats() {
+    const stats: ServerStats = {
+      id: this.statsIdCounter++,
+      timestamp: new Date(),
+      cpuUsage: Math.floor(Math.random() * 30) + 10, // 10-40%
+      memoryUsage: Math.floor(Math.random() * 40) + 20, // 20-60%
+      diskUsage: Math.floor(Math.random() * 20) + 30, // 30-50%
+      activeUsers: this.users.size,
+      uptime: 99 * 24 * 3600 // 99 days uptime
+    };
+    this.serverStats.set(stats.id, stats);
+
+    // Continue generating stats every 30 seconds
+    setTimeout(() => this.generateServerStats(), 30000);
   }
 
   // Users
@@ -431,4 +467,7 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use database storage if available, otherwise fallback to memory storage
+export const storage = db ? new DatabaseStorage() : new MemStorage();
+
+console.log(`Using ${db ? 'database' : 'in-memory'} storage for development`);
