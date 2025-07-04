@@ -9,6 +9,7 @@ import rateLimit from "express-rate-limit";
 import cron from "node-cron";
 import crypto from "crypto";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { 
   insertUserSchema, 
   insertHostingPackageSchema, 
@@ -66,6 +67,9 @@ const authLimiter = rateLimit({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Replit Auth
+  await setupAuth(app);
+
   // Apply rate limiting to API routes
   app.use('/api', apiLimiter);
   app.use('/api/auth', authLimiter);
@@ -149,7 +153,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Failed to generate server stats:', error);
     }
   });
-  // Authentication routes
+
+  // Replit Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Legacy authentication routes (for backward compatibility)
   app.post("/api/auth/register", async (req, res) => {
     try {
       const { username, email, password } = req.body;

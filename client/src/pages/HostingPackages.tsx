@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertHostingPackageSchema } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiCall, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { HostingPackage, User } from "@shared/schema";
 import { z } from "zod";
@@ -40,7 +40,10 @@ export default function HostingPackages() {
 
   const createPackageMutation = useMutation({
     mutationFn: async (data: CreatePackageData) => {
-      return await apiRequest("POST", "/api/hosting-packages", data);
+      return await apiCall("/api/hosting-packages", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/hosting-packages"] });
@@ -62,7 +65,9 @@ export default function HostingPackages() {
 
   const deletePackageMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest("DELETE", `/api/hosting-packages/${id}`);
+      return await apiCall(`/api/hosting-packages/${id}`, {
+        method: "DELETE",
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/hosting-packages"] });

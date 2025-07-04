@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Logo } from "./Logo"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const navigation = [
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [location] = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
+  const { user } = useAuth();
 
   return (
     <>
@@ -128,17 +130,34 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           isExpanded && "p-4"
         )}>
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
-              <i className="fas fa-user text-white text-sm"></i>
-            </div>
+            {user?.profileImageUrl ? (
+              <img 
+                src={user.profileImageUrl} 
+                alt="Profile" 
+                className="w-10 h-10 rounded-full object-cover shadow-lg"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+                <i className="fas fa-user text-white text-sm"></i>
+              </div>
+            )}
             {isExpanded && (
               <>
                 <div className="flex-1 ml-3 overflow-hidden">
-                  <p className="text-sm font-medium text-white">Admin User</p>
-                  <p className="text-xs text-slate-400">admin@baseless.com</p>
+                  <p className="text-sm font-medium text-white">
+                    {user?.firstName || user?.lastName 
+                      ? `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
+                      : 'User'
+                    }
+                  </p>
+                  <p className="text-xs text-slate-400">{user?.email || 'No email'}</p>
                 </div>
-                <button className="text-slate-400 hover:text-white transition-colors">
-                  <i className="fas fa-cog w-5 h-5"></i>
+                <button 
+                  className="text-slate-400 hover:text-white transition-colors ml-2"
+                  onClick={() => window.location.href = '/api/logout'}
+                  title="Logout"
+                >
+                  <i className="fas fa-sign-out-alt w-5 h-5"></i>
                 </button>
               </>
             )}

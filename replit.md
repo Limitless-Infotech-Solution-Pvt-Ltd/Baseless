@@ -117,11 +117,37 @@ RESTful API structure with full CRUD operations for:
 - **Connection**: Environment-based configuration
 - **Commands**: `npm run db:push` for schema updates
 
+## Recent Changes
+
+- **July 04, 2025**: Completed Replit Auth integration
+  - Implemented OpenID Connect authentication with Replit
+  - Updated database schema for string-based user IDs (from Replit)
+  - Created landing page for non-authenticated users
+  - Added user profile display and logout functionality
+  - Updated frontend to use TanStack Query for auth state management
+
+## Authentication Architecture
+
+### Replit Auth Integration
+- **Authentication Provider**: Replit OpenID Connect
+- **Session Management**: PostgreSQL-based session storage with connect-pg-simple
+- **User Storage**: Database-backed user management with automatic user upsert
+- **Frontend Auth**: TanStack Query for authentication state
+- **Protected Routes**: Component-based route protection
+
+### User Flow
+1. **Unauthenticated**: Users see landing page with "Get Started" button
+2. **Login**: Clicking login redirects to `/api/login` (Replit OAuth flow)
+3. **Callback**: Replit handles authentication and redirects back
+4. **Authenticated**: Users access full hosting control panel
+5. **Logout**: Users can logout via sidebar button (`/api/logout`)
+
 ## Changelog
 
 ```
 Changelog:
 - July 04, 2025. Initial setup
+- July 04, 2025. Completed Replit Auth integration
 ```
 
 ## User Preferences

@@ -1,8 +1,8 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthContext, useAuthProvider } from "./hooks/useAuth";
+import { useAuth } from "./hooks/useAuth";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import UserAccounts from "./pages/UserAccounts";
@@ -10,94 +10,71 @@ import HostingPackages from "./pages/HostingPackages";
 import FileManager from "./pages/FileManager";
 import TwoFactorSetup from "./pages/TwoFactorSetup";
 import PlaceholderPage from "./pages/PlaceholderPage";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/not-found";
 import SSLCertificates from "./pages/SSLCertificates";
 import AdvancedMonitoring from "./pages/AdvancedMonitoring";
-import { Redirect, lazy } from 'wouter';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuthProvider();
-  const [, setLocation] = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!user) {
-    setLocation("/login");
-    return null;
+  if (!isAuthenticated) {
+    return <Landing />;
   }
 
   return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuthProvider();
-  const [, setLocation] = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (user) {
-    setLocation("/");
-    return null;
+  if (isAuthenticated) {
+    return <Dashboard />;
   }
 
   return <>{children}</>;
 }
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/accounts" component={UserAccounts} />
-        <Route path="/packages" component={HostingPackages} />
-        <Route path="/files" component={FileManager} />
-        <Route path="/2fa-setup" component={TwoFactorSetup} />
-        <Route path="/domains" component={lazy(() => import("./pages/DomainManagement"))} />
-        <Route path="/webmail" component={lazy(() => import("./pages/Webmail"))} />
-        <Route path="/code-editor" component={lazy(() => import("./pages/BaselessCode"))} />
-        <Route path="/email" component={() => <PlaceholderPage title="Email Management" icon="fas fa-envelope" description="Create and manage email accounts, forwarders, and autoresponders" buttonText="Create Email Account" />} />
-        <Route path="/databases" component={() => <PlaceholderPage title="Database Management" icon="fas fa-database" description="Create and manage PostgreSQL databases and users" buttonText="Create Database" />} />
-        <Route path="/monitoring" component={AdvancedMonitoring} />
-        <Route path="/ssl" component={SSLCertificates} />
-        <Route path="/backups" component={() => <PlaceholderPage title="Backup Management" icon="fas fa-shield-alt" description="Schedule and manage server and account backups" buttonText="Create Backup" />} />
-        <Route path="/security" component={() => <PlaceholderPage title="Security Center" icon="fas fa-lock" description="Manage security settings and access controls" buttonText="Configure Security" />} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      {isLoading || !isAuthenticated ? (
+        <Route path="/" component={Landing} />
+      ) : (
+        <>
+          <Route path="/" component={() => <Layout><Dashboard /></Layout>} />
+          <Route path="/accounts" component={() => <Layout><UserAccounts /></Layout>} />
+          <Route path="/packages" component={() => <Layout><HostingPackages /></Layout>} />
+          <Route path="/files" component={() => <Layout><FileManager /></Layout>} />
+          <Route path="/2fa-setup" component={() => <Layout><TwoFactorSetup /></Layout>} />
+          <Route path="/email" component={() => <Layout><PlaceholderPage title="Email Management" icon="fas fa-envelope" description="Create and manage email accounts, forwarders, and autoresponders" buttonText="Create Email Account" /></Layout>} />
+          <Route path="/databases" component={() => <Layout><PlaceholderPage title="Database Management" icon="fas fa-database" description="Create and manage PostgreSQL databases and users" buttonText="Create Database" /></Layout>} />
+          <Route path="/monitoring" component={() => <Layout><AdvancedMonitoring /></Layout>} />
+          <Route path="/ssl" component={() => <Layout><SSLCertificates /></Layout>} />
+          <Route path="/backups" component={() => <Layout><PlaceholderPage title="Backup Management" icon="fas fa-shield-alt" description="Schedule and manage server and account backups" buttonText="Create Backup" /></Layout>} />
+          <Route path="/security" component={() => <Layout><PlaceholderPage title="Security Center" icon="fas fa-lock" description="Manage security settings and access controls" buttonText="Configure Security" /></Layout>} />
+          <Route component={NotFound} />
+        </>
+      )}
+    </Switch>
   );
 }
 
 function App() {
-  const auth = useAuthProvider();
-
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider value={auth}>
-        <Switch>
-          <Route path="/login">
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          </Route>
-          <Route path="/register">
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          </Route>
-          <Route>
-            <ProtectedRoute>
-              <Router />
-            </ProtectedRoute>
-          </Route>
-        </Switch>
-        <Toaster />
-      </AuthContext.Provider>
+      <Router />
+      <Toaster />
     </QueryClientProvider>
   );
 }
